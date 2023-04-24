@@ -1,0 +1,91 @@
+---
+title: "202hw10"
+author: "Schoen"
+date: "2023-04-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+I worked by myself!
+
+Github Repository: 
+
+```{r}
+acc <- read.csv("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2023/main/Practice/data/fars2016/accident.csv", stringsAsFactors = FALSE)
+```
+
+Part One
+
+Are there some days of the week where more accidents happen than on others?
+
+```{r}
+library(ggplot2)
+library(dplyr)
+acc.day = acc %>% group_by(DAY_WEEK) %>%
+  summarise(n = n())
+acc.day
+```
+
+More accidents occur on Saturdays than any other day of the week. The whole weekend Friday-Sunday has higher numbers than the other weekdays. Out of the rest of the weekdays, Thursday has the most accidents.
+
+What time of the day do accidents happen?
+
+```{r}
+acc.hour = acc %>% group_by(HOUR) %>% filter(HOUR < 25) %>% summarise(n = n())
+ggplot(acc.hour, aes(x=HOUR, y=n))+ geom_point()
+```
+
+Excluding the HOUR=99 values which indicates missing data it appears most accidents happen between the 15th and 20th hour of the day. This corresponds to between 3pm and 8pm or early through later afternoon. 
+
+What is the number of accidents with at least one drunk driver?
+
+```{r}
+acc.drunk = acc %>% group_by(DRUNK_DR) %>% filter(DRUNK_DR > 0) %>% summarise(n())
+acc.drunk
+```
+
+The number of accidents with at least one drunk driver is 8474 + 243 + 3 = 8720.
+
+Part Two
+```{r}
+person <- read.csv ("https://raw.githubusercontent.com/yumouqiu/DS202-Spring2023/main/Practice/data/fars2016/person.csv", stringsAsFactors= FALSE)
+```
+
+Subset drivers PER_TYP == 1
+```{r}
+person = person %>% filter(PER_TYP == 1)
+```
+
+Join accident and driver table
+```{r}
+library(tidyverse)
+joined = left_join(person, acc, by = c("STATE","ST_CASE","VE_FORMS","DAY", "HOUR", "MONTH","COUNTY", "MINUTE", "RUR_URB", "HARM_EV", "MAN_COLL", "SCH_BUS", "FUNC_SYS"))
+```
+
+Tally the number of accidents by day of the week
+```{r}
+joined.day = joined %>% group_by(DAY_WEEK) %>% summarise(n= n())
+joined.day
+ggplot(joined.day, aes(x=DAY_WEEK, y=n)) + geom_point()
+```
+
+Tally the number of accidents by hour of the day
+```{r}
+joined.hour = joined %>% group_by(HOUR) %>% filter(HOUR < 25) %>% summarise(n= n())
+joined.hour
+ggplot(joined.hour, aes(x=HOUR, y=n)) + geom_point()
+```
+
+Tally the number of accidents by gender
+```{r}
+joined.gender = joined %>% group_by(SEX) %>% filter(SEX < 3) %>% summarise(n= n())
+joined.gender
+ggplot(joined.gender, aes(x=SEX, y=n)) + geom_col()
+```
+
+
+
+
